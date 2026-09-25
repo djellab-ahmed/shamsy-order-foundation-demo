@@ -46,7 +46,7 @@ If the flag is absent or anything other than exactly `true`, the buttons are hid
 
 For local database-only verification, `npm run test:db` starts a temporary PostgreSQL cluster, applies all migrations, runs `tests/sql/rls.sql` as owner/adviser identities, and removes the cluster. It needs `initdb`, `pg_ctl`, `pg_config`, and `psql`.
 
-For a full local HTTP run, start Docker, run `npx supabase start`, then `npm run setup:local-proof`. That creates two disposable local Auth users and writes ignored `.env.local`. Run `npm run verify:all` from the project root; Playwright starts the app on port 3100 when needed and loads `.env.local` without printing its values. For the separate HTTP proof, run `npm run dev -- --hostname 127.0.0.1 --port 3100` in one terminal and `npm run prove` in another.
+For a full local HTTP run, start Docker, run `npx supabase start`, then `npm run setup:local-proof`. That creates two disposable local Auth users and writes ignored `.env.local`. Run `npm run verify:all` from the project root; Playwright starts an isolated app on port 3101 and loads `.env.local` without printing its values. Leave `PLAYWRIGHT_BASE_URL` unset for this local run; set it only when testing a separate deployment. For the separate HTTP proof, run `npm run dev -- --hostname 127.0.0.1 --port 3100` in one terminal and `npm run prove` in another.
 
 ## Direct adviser bypass proof
 

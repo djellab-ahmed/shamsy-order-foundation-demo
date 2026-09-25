@@ -1,0 +1,42 @@
+{
+  "name": "shamsy-order-foundation-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:db": "bash scripts/test-db.sh",
+    "test:e2e": "playwright test",
+    "test:secrets": "node scripts/check-demo-secret-exposure.mjs",
+    "setup:local-proof": "node scripts/setup-local-proof.mjs",
+    "setup:hosted-proof": "node scripts/setup-hosted-proof.mjs",
+    "configure:vercel": "node scripts/configure-vercel.mjs",
+    "reset:rate": "node scripts/reset-demo-rate.mjs",
+    "prove": "node scripts/prove-server-enforcement.mjs"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.1",
+    "next": "16.3.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^24.13.6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^5.0.1"
+  }
+}

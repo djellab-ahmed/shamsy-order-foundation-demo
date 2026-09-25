@@ -1,0 +1,10 @@
+import { createClient } from "@supabase/supabase-js";
+const { NEXT_PUBLIC_SUPABASE_URL: url, NEXT_PUBLIC_SUPABASE_ANON_KEY: key, PROOF_OWNER_EMAIL: email, PROOF_OWNER_PASSWORD: password } = process.env;
+const base = process.env.PROOF_BASE_URL || "http://127.0.0.1:3100";
+if (!url || !key || !email || !password) throw new Error("Load the hosted or local proof environment first.");
+const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+const { data, error } = await db.auth.signInWithPassword({ email, password });
+if (error || !data.session) throw new Error("Owner sign-in failed.");
+const response = await fetch(`${base}/api/rate`, { method: "PATCH", headers: { Authorization: `Bearer ${data.session.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ rate: 8200 }) });
+if (!response.ok) throw new Error(`Rate reset failed: ${response.status}`);
+console.log("Current demo rate reset to 8,200 SDG/USD; saved order snapshots are unchanged.");

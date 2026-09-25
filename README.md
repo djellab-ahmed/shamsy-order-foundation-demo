@@ -46,14 +46,14 @@ If the flag is absent or anything other than exactly `true`, the buttons are hid
 
 For local database-only verification, `npm run test:db` starts a temporary PostgreSQL cluster, applies all migrations, runs `tests/sql/rls.sql` as owner/adviser identities, and removes the cluster. It needs `initdb`, `pg_ctl`, `pg_config`, and `psql`.
 
-For a full local HTTP run, start Docker, run `npx supabase start`, then `npm run setup:local-proof`. That creates two disposable local Auth users and writes ignored `.env.local`. Run `npm run dev -- --hostname 127.0.0.1 --port 3100` in one terminal; in another run `node --env-file=.env.local scripts/prove-server-enforcement.mjs` and `node --env-file=.env.local node_modules/.bin/playwright test`.
+For a full local HTTP run, start Docker, run `npx supabase start`, then `npm run setup:local-proof`. That creates two disposable local Auth users and writes ignored `.env.local`. Run `npm run verify:all` from the project root; Playwright starts the app on port 3100 when needed and loads `.env.local` without printing its values. For the separate HTTP proof, run `npm run dev -- --hostname 127.0.0.1 --port 3100` in one terminal and `npm run prove` in another.
 
 ## Direct adviser bypass proof
 
-Put `PROOF_ADVISER_EMAIL`, `PROOF_ADVISER_PASSWORD`, `PROOF_OWNER_EMAIL`, and `PROOF_OWNER_PASSWORD` in your shell or ignored `.env.local`, and run the app. `PROOF_BASE_URL` defaults to `http://127.0.0.1:3100`; set it to the app URL if needed. Load the environment into the shell, then run:
+Put `PROOF_ADVISER_EMAIL`, `PROOF_ADVISER_PASSWORD`, `PROOF_OWNER_EMAIL`, and `PROOF_OWNER_PASSWORD` in ignored `.env.local`, and run the app. `PROOF_BASE_URL` defaults to `http://127.0.0.1:3100`; set it to the app URL if needed. Node 24 loads `.env.local` for the proof automatically:
 
 ```bash
-set -a; source .env.local; set +a; npm run prove
+npm run prove
 ```
 
 The script signs into **both real Auth accounts**, tries a direct Supabase table insert, sends a direct adviser `POST /api/orders` with the 7.25% line, asserts HTTP **403 `OWNER_APPROVAL_REQUIRED`**, and queries PostgreSQL through RLS to assert zero rows for that draft key. It also tries a forged `role: "owner"` approval, obtains a real owner approval, checks a changed discount fails, checks 7,900 fails, saves the exact worked example, verifies authoritative $2,070 pricing and $5,490 / 45,018,000 SDG, retries the idempotency key, changes the current rate to 9,000 as owner, and reopens the saved 8,200 order.
@@ -61,20 +61,14 @@ The script signs into **both real Auth accounts**, tries a direct Supabase table
 ## Tests and CI
 
 ```bash
-npm run lint
-npm run typecheck
-npm test
-npm run test:db
-npm run test:e2e
-npm run build
-node --env-file=.env.hosted.local scripts/check-demo-secret-exposure.mjs
+npm run verify:all
 ```
 
-`tests/finance.test.ts` checks integer arithmetic and thresholds. `tests/demo-login.test.ts` exercises the enable flag, input/origin rejection, credential failures, membership checks, and successful cookie redirects. `tests/sql/rls.sql` proves the database transaction, RLS, role boundaries, price forgery resistance, approval binding, and immutable snapshots. Playwright checks unauthenticated API rejection and 390px overflow. Its manual authenticated flow requires `PROOF_*`; `tests/e2e/demo-access.spec.ts` verifies both one-click accounts against real Supabase, refresh/sign-out, adviser rejection with zero rows, owner approval, changed-input rejection, and no passwords in browser HTML/JS/network bodies. Authenticated cases explicitly skip when their configuration is unavailable. The secret scanner requires the actual private environment and a completed production build, and checks repository files, browser assets/source maps, and `NEXT_PUBLIC_*` values without printing credentials.
+This runs lint, type checking, unit tests, a temporary PostgreSQL integration test, Playwright, a production build, and a secret exposure scan in order. `tests/finance.test.ts` checks integer arithmetic and thresholds. `tests/demo-login.test.ts` exercises the enable flag, input/origin rejection, credential failures, membership checks, and successful cookie redirects. `tests/sql/rls.sql` proves the database transaction, RLS, role boundaries, price forgery resistance, approval binding, and immutable snapshots. Playwright checks unauthenticated API rejection and 390px overflow. Its manual authenticated flow requires `PROOF_*`; `tests/e2e/demo-access.spec.ts` verifies both one-click accounts against real Supabase, refresh/sign-out, adviser rejection with zero rows, owner approval, changed-input rejection, and no passwords in browser HTML/JS/network bodies. Authenticated cases explicitly skip when their configuration is unavailable. The secret scanner requires the actual private environment and a completed production build, and checks repository files, browser assets/source maps, and `NEXT_PUBLIC_*` values without printing credentials.
 
 To verify disabled access locally with hosted Supabase configured: `SHAMSY_DEMO_LOGIN_ENABLED=false node --env-file=.env.hosted.local node_modules/.bin/playwright test tests/e2e/demo-access.spec.ts -g 'demo availability'`.
 
-`.github/workflows/ci.yml` is configured to run lint, typecheck, unit, temporary PostgreSQL integration, unauthenticated Playwright, and build without secrets when pushed to GitHub. This checkout has no Git remote, so that workflow has not run in GitHub Actions. For full authenticated Playwright and `npm run prove` in CI, provision an isolated Supabase test project and provide its public URL/key and the two test account credentials as CI secrets. Never point destructive test setup at production.
+`.github/workflows/ci.yml` runs lint, typecheck, unit, temporary PostgreSQL integration, unauthenticated Playwright, and build without secrets on GitHub. The local `npm run verify:all` run uses ignored `.env.local` and the local Supabase stack to exercise all six Playwright tests, including the authenticated cases. For full authenticated Playwright and `npm run prove` in CI, provision an isolated Supabase test project and provide its public URL/key and the two test account credentials as CI secrets. Never point destructive test setup at production.
 
 ## Deployment
 

@@ -11,13 +11,14 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:db": "bash scripts/test-db.sh",
-    "test:e2e": "playwright test",
-    "test:secrets": "node scripts/check-demo-secret-exposure.mjs",
+    "test:e2e": "node --env-file-if-exists=.env.local node_modules/.bin/playwright test",
+    "verify:all": "npm run lint && npm run typecheck && npm test && npm run test:db && npm run test:e2e && npm run build && npm run test:secrets",
+    "test:secrets": "node --env-file=.env.local scripts/check-demo-secret-exposure.mjs",
     "setup:local-proof": "node scripts/setup-local-proof.mjs",
     "setup:hosted-proof": "node scripts/setup-hosted-proof.mjs",
     "configure:vercel": "node scripts/configure-vercel.mjs",
     "reset:rate": "node scripts/reset-demo-rate.mjs",
-    "prove": "node scripts/prove-server-enforcement.mjs"
+    "prove": "node --env-file=.env.local scripts/prove-server-enforcement.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

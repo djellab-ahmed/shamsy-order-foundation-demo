@@ -4,12 +4,12 @@ import { createClient } from "@supabase/supabase-js";
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const base = process.env.PROOF_BASE_URL || "http://127.0.0.1:3100";
-for (const name of ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "PROOF_ADVISER_EMAIL", "PROOF_ADVISER_PASSWORD", "PROOF_OWNER_EMAIL", "PROOF_OWNER_PASSWORD"]) if (!process.env[name]) throw new Error(`Set ${name} before running this hosted Supabase proof.`);
+for (const name of ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "PROOF_ADVISER_EMAIL", "PROOF_ADVISER_PASSWORD", "PROOF_OWNER_EMAIL", "PROOF_OWNER_PASSWORD"]) if (!process.env[name]) throw new Error(`Set ${name} before running the Supabase proof.`);
 
 async function login(email, password) {
   const db = createClient(url, anon, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data, error } = await db.auth.signInWithPassword({ email, password });
-  if (error || !data.session) throw new Error(`Authentication failed for ${email}: ${error?.message}`);
+  if (error || !data.session) throw new Error("Proof account authentication failed.");
   return { db, token: data.session.access_token };
 }
 async function call(path, token, method = "GET", body) {
